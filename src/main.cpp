@@ -10,7 +10,7 @@ int main()
   std::string line;
   std::string command;
 
-  while (1) {
+  while (true) {
     std::cout << "$ ";
     std::getline(std::cin, line);
     std::stringstream ss(line);
@@ -24,6 +24,23 @@ int main()
     }
     else if (command == "exit")
       break;
+    else if (command == "type")
+    {
+      std::string builtin[3] = {"echo", "exit", "type"};
+      std::string command_to_know;
+      ss >> command_to_know;
+      for (int i = 0; i <= builtin->length(); i++)
+        if (builtin[i] == command_to_know)
+        {
+          std::cout << command_to_know << " is a shell builtin\n";
+          break;
+        }
+        else
+        {
+          std::cout << command_to_know << ": command not found\n";
+          break;
+        }
+    }
     else
       std::cout << command << ": command not found\n";
   }
