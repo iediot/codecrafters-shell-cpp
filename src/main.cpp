@@ -1,12 +1,15 @@
 #include <iostream>
 #include <string>
 
-int main() {
+int main()
+{
   std::cout << std::unitbuf;
   std::cerr << std::unitbuf;
-
-  std::cout << "$ ";
   std::string command;
-  std::cin >> command;
-  std::cout << command << ": command not found";
+
+  while (1) {
+    std::cout << "$ ";
+    std::cin >> command;
+    std::cout << command << ": command not found\n";
+  }
 }
