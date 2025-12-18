@@ -10,8 +10,15 @@ int main()
   while (1) {
     std::cout << "$ ";
     std::cin >> command;
-    if (command == "exit")
+    if (command == "echo")
+    {
+      std::string echo;
+      std::cin >> echo;
+      std::cout << echo << std::endl;
+    }
+    else if (command == "exit")
       break;
-    std::cout << command << ": command not found\n";
+    else
+      std::cout << command << ": command not found\n";
   }
 }
