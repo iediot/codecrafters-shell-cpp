@@ -37,7 +37,7 @@ int main()
           found = true;
         }
       if (found == false)
-        std::cout << command_to_know << ": command not found\n";
+        std::cout << command_to_know << ": not found\n";
     }
     else
       std::cout << command << ": command not found\n";
