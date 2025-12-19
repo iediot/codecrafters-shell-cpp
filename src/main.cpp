@@ -84,6 +84,5 @@ int main()
         wait(nullptr);
       }
     }
-    return 0;
   }
 }
