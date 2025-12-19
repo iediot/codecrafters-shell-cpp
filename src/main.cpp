@@ -2,6 +2,7 @@
 #include <ranges>
 #include <string>
 #include <sstream>
+#include <unistd.h>
 
 int main()
 {
@@ -36,7 +37,23 @@ int main()
           std::cout << command_to_know << " is a shell builtin\n";
           found = true;
         }
-      if (found == false)
+      if (!found)
+      {
+        std::string path_env = std::getenv("PATH");
+        std::stringstream ss_path(path_env);
+        std::string path;
+        while (std::getline(ss_path, path, ':'))
+        {
+          std::string full_path = path + '/' + command_to_know;
+          if (access(full_path.c_str(), X_OK) == 0)
+          {
+            std::cout << command_to_know << "is" << full_path << std::endl;
+            found = true;
+            break;
+          }
+        }
+      }
+      if (!found)
         std::cout << command_to_know << ": not found\n";
     }
     else
