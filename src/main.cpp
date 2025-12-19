@@ -84,6 +84,10 @@ int main()
         std::cout << command << ": command not found\n";
         exit(1);
       }
+      else
+      {
+        wait(nullptr);
+      }
     }
   }
 }
