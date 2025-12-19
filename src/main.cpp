@@ -60,6 +60,10 @@ int main()
       if (!found)
         std::cout << command_to_know << ": not found\n";
     }
+    else if (command == "exit")
+    {
+      return 0;
+    }
     else
     {
       std::vector<std::string> args;
