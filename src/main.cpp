@@ -47,7 +47,7 @@ int main()
           std::string full_path = path + '/' + command_to_know;
           if (access(full_path.c_str(), X_OK) == 0)
           {
-            std::cout << command_to_know << "is" << full_path << std::endl;
+            std::cout << command_to_know << " is " << full_path << std::endl;
             found = true;
             break;
           }
