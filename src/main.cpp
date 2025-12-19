@@ -35,8 +35,8 @@ int main()
       std::string builtin[3] = {"echo", "exit", "type"};
       std::string command_to_know;
       ss >> command_to_know;
-      for (int i = 0; i <= builtin->length(); i++)
-        if (builtin[i] == command_to_know)
+      for (auto b : builtin)
+        if (b == command_to_know)
         {
           std::cout << command_to_know << " is a shell builtin\n";
           found = true;
@@ -62,7 +62,7 @@ int main()
     }
     else if (command == "exit")
     {
-      return 0;
+      break;
     }
     else
     {
@@ -82,6 +82,7 @@ int main()
       {
         execvp(command.c_str(), c_args.data());
         std::cout << command << ": command not found\n";
+        exit(1);
       }
       else
       {
