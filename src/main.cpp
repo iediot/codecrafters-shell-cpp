@@ -70,15 +70,18 @@ int main() {
     else if (command == "cd")
     {
       const char* target = nullptr;
+      const char* home = std::getenv("HOME");
       std::vector<std::string> args;
       std::string arg;
 
       while (ss >> arg)
         args.push_back(arg);
-      if (args.size() == 0) {
-        target = std::getenv("HOME");
+      if (args.empty()) {
+        target = home;
         if (!target)
           target = "/";
+      } else if (args[0] == "~"){
+        target = home;
       } else {
         target = args[0].c_str();
       }
