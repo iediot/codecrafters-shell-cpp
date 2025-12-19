@@ -1,8 +1,12 @@
+#include <complex>
 #include <iostream>
 #include <ranges>
 #include <string>
 #include <sstream>
 #include <unistd.h>
+#include <vector>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 int main()
 {
@@ -57,6 +61,29 @@ int main()
         std::cout << command_to_know << ": not found\n";
     }
     else
-      std::cout << command << ": command not found\n";
+    {
+      std::vector<std::string> args;
+      args.push_back(command);
+      std::string arg;
+      while (ss >> arg)
+        args.push_back(arg);
+
+      std::vector<char*> c_args;
+      for (auto &a : args)
+        c_args.push_back(&a[0]);
+      c_args.push_back(nullptr);
+
+      pid_t pid = fork();
+      if (pid == 0)
+      {
+        execvp(command.c_str(), c_args.data());
+        std::cout << command << ": command not found\n";
+      }
+      else
+      {
+        wait(nullptr);
+      }
+    }
+    return 0;
   }
 }
