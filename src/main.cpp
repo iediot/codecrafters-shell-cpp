@@ -33,7 +33,7 @@ int main()
     else if (command == "type")
     {
       bool found = false;
-      std::string builtin[3] = {"echo", "exit", "type"};
+      std::string builtin[100] = {"echo", "exit", "type", "pwd"};
       std::string command_to_know;
       ss >> command_to_know;
       for (const auto& b : builtin)
