@@ -62,7 +62,7 @@ int main()
     }
     else if (command == "exit")
     {
-      break;
+      return 0;
     }
     else
     {
@@ -83,10 +83,6 @@ int main()
         execvp(command.c_str(), c_args.data());
         std::cout << command << ": command not found\n";
         exit(1);
-      }
-      else
-      {
-        wait(nullptr);
       }
     }
   }
