@@ -7,6 +7,7 @@
 #include <vector>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <filesystem>
 
 int main()
 {
@@ -35,7 +36,7 @@ int main()
       std::string builtin[3] = {"echo", "exit", "type"};
       std::string command_to_know;
       ss >> command_to_know;
-      for (auto b : builtin)
+      for (const auto& b : builtin)
         if (b == command_to_know)
         {
           std::cout << command_to_know << " is a shell builtin\n";
@@ -63,6 +64,9 @@ int main()
     else if (command == "exit")
     {
       return 0;
+    }
+    else if (command == "pwd") {
+      std::cout << std::filesystem::current_path().string() << std::endl;
     }
     else
     {
