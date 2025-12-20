@@ -13,13 +13,16 @@
 std::vector<std::string> parse_input(std::string line) {
   std::vector<std::string> tokens;
   std::string current_token;
-  bool in_quotes = false;
+  char quote_char = 0;
 
   for (char c : line) {
-    if (c == '\'' || c == '\"') {
-      in_quotes = !in_quotes;
+    if (quote_char == 0 && (c == '\'' || c == '\"')) {
+      quote_char = c;
     }
-    else if (c == ' ' && !in_quotes) {
+    else if (quote_char == c) {
+      quote_char = 0;
+    }
+    else if (quote_char == 0 && c == ' ') {
       if (!current_token.empty()) {
         tokens.push_back(current_token);
         current_token.clear();
