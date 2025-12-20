@@ -16,7 +16,7 @@ std::vector<std::string> parse_input(std::string line) {
   bool in_quotes = false;
 
   for (char c : line) {
-    if (c== '\'') {
+    if (c == '\'' || c == '\"') {
       in_quotes = !in_quotes;
     }
     else if (c == ' ' && !in_quotes) {
