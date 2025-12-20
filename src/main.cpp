@@ -11,29 +11,71 @@
 #include <cstdlib>
 
 std::vector<std::string> parse_input(std::string line) {
-  std::vector<std::string> tokens;
-  std::string current_token;
-  char quote_char = 0;
+    std::vector<std::string> tokens;
+    std::string current_token;
+    char quote_char = 0;
+    bool token_started = false;
 
-  for (char c : line) {
-    if (quote_char == 0 && (c == '\'' || c == '\"')) {
-      quote_char = c;
+    for (size_t i = 0; i < line.length(); i++) {
+        char c = line[i];
+
+        if (quote_char == 0) {
+            if (c == '\\') {
+                if (i + 1 < line.length()) {
+                    current_token += line[i + 1];
+                    i++;
+                    token_started = true;
+                }
+            }
+            else if (c == '\'' || c == '"') {
+                quote_char = c;
+                token_started = true;
+            }
+            else if (c == ' ') {
+                if (token_started) {
+                    tokens.push_back(current_token);
+                    current_token.clear();
+                    token_started = false;
+                }
+            }
+            else {
+                current_token += c;
+                token_started = true;
+            }
+        }
+        else if (quote_char == '\'') {
+            if (c == '\'') {
+                quote_char = 0;
+            } else {
+                current_token += c;
+            }
+        }
+        else if (quote_char == '"') {
+            if (c == '"') {
+                quote_char = 0;
+            }
+            else if (c == '\\') {
+                if (i + 1 < line.length()) {
+                    char next = line[i + 1];
+                    if (next == '\\' || next == '"' || next == '$' || next == '\n') {
+                         current_token += next;
+                         i++;
+                    } else {
+                        current_token += c;
+                    }
+                } else {
+                    current_token += c;
+                }
+            }
+            else {
+                current_token += c;
+            }
+        }
     }
-    else if (quote_char == c) {
-      quote_char = 0;
-    }
-    else if (quote_char == 0 && c == ' ') {
-      if (!current_token.empty()) {
+    if (token_started) {
         tokens.push_back(current_token);
-        current_token.clear();
-      }
     }
-    else
-      current_token += c;
-  }
-  if (!current_token.empty())
-    tokens.push_back(current_token);
-  return tokens;
+    return tokens;
 }
 
 int main() {
@@ -70,7 +112,7 @@ int main() {
     else if (command == "type") {
       if (args.size() < 2)
         continue;
-      std::string command_to_know = args[1];
+      const std::string& command_to_know = args[1];
       bool found = false;
       std::vector<std::string> builtins = {"echo", "exit", "type", "pwd", "cd"};
 
