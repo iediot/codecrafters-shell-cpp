@@ -102,14 +102,19 @@ int main() {
         std::string file;
         int saved = dup(1);
         if (args.size() > 2)
-            if (args[args.size() - 2]  == ">" || args[args.size() - 2]  == "1>") {
+            if (args[args.size() - 2]  == ">" ||
+                args[args.size() - 2]  == "1>" ||
+                args[args.size() - 2]  == "2>") {
                 write_into_file = true;
                 file = args[args.size() - 1];
-                args.pop_back();
-                args.pop_back();
                 int file_fd = open(file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-                dup2(file_fd, 1);
+                if (args[args.size() - 2]  == "2>")
+                    dup2(file_fd, 2);
+                else
+                    dup2(file_fd, 1);
                 close(file_fd);
+                args.pop_back();
+                args.pop_back();
             }
 
         if (command == "echo") {
