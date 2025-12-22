@@ -117,7 +117,7 @@ int main() {
             else {
                 std::ofstream output;
                 output.open(file);
-                for (size_t i = 1; i < args.size(); i++) {
+                for (size_t i = 1; i < args.size() - 2; i++) {
                     if (i > 1)
                         output << " ";
                     output << args[i];
@@ -125,7 +125,6 @@ int main() {
                 output << "\n";
                 output.close();
             }
-
         }
 
         else if (command == "exit") {
