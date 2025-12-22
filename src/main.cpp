@@ -9,7 +9,7 @@
 #include <sys/wait.h>
 #include <filesystem>
 #include <cstdlib>
-#include <fstream>
+#include <fcntl.h>
 
 std::vector<std::string> parse_input(std::string line) {
     std::vector<std::string> tokens;
@@ -98,33 +98,27 @@ int main() {
 
         std::string command = args[0];
 
+        bool write_into_file = false;
+        std::string file;
+        int saved = dup(1);
+        if (args.size() > 2)
+            if (args[args.size() - 2]  == ">" || args[args.size() - 2]  == "1>") {
+                write_into_file = true;
+                file = args[args.size() - 1];
+                args.pop_back();
+                args.pop_back();
+                int file_fd = open(file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                dup2(file_fd, 1);
+                close(file_fd);
+            }
+
         if (command == "echo") {
-            bool write_into_file = false;
-            std::string file;
-            for (size_t i = 1; i < args.size(); i++)
-                if (args[i] == ">") {
-                    write_into_file = true;
-                    file = args[i + 1];
-                }
-            if (!write_into_file) {
-                for (size_t i = 1; i < args.size(); i++) {
-                    if (i > 1)
-                        std::cout << " ";
-                    std::cout << args[i];
-                }
-                std::cout << "\n";
+            for (size_t i = 1; i < args.size(); i++) {
+                if (i > 1)
+                    std::cout << " ";
+                std::cout << args[i];
             }
-            else {
-                std::ofstream output;
-                output.open(file);
-                for (size_t i = 1; i < args.size() - 2; i++) {
-                    if (i > 1)
-                        output << " ";
-                    output << args[i];
-                }
-                output << "\n";
-                output.close();
-            }
+            std::cout << "\n";
         }
 
         else if (command == "exit") {
@@ -193,6 +187,11 @@ int main() {
             } else {
                 wait(nullptr);
             }
+        }
+
+        if (write_into_file) {
+            dup2(saved, 1);
+            close(saved);
         }
     }
 }
