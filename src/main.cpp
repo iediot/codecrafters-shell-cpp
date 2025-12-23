@@ -101,36 +101,31 @@ int main() {
         bool write_into_file = false;
         std::string file;
         int saved = dup(1);
-        if (args.size() > 2) {
+        if (args.size() > 2)
             if (args[args.size() - 2]  == ">" ||
                 args[args.size() - 2]  == "1>" ||
-                args[args.size() - 2]  == "2>") {
-                write_into_file = true;
-                file = args[args.size() - 1];
-                int file_fd = open(file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-                if (args[args.size() - 2]  == "2>")
-                    dup2(file_fd, 2);
-                else
-                    dup2(file_fd, 1);
-                close(file_fd);
-                args.pop_back();
-                args.pop_back();
-                }
-            else if (args[args.size() - 2]  == ">>" ||
+                args[args.size() - 2]  == "2>" ||
+                args[args.size() - 2]  == ">>" ||
                 args[args.size() - 2]  == "1>>" ||
                 args[args.size() - 2]  == "2>>") {
                 write_into_file = true;
                 file = args[args.size() - 1];
-                int file_fd = open(file.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
-                if (args[args.size() - 2]  == "2>>")
+                int file_fd;
+
+                if (args[args.size() - 2].contains(">>"))
+                    file_fd = open(file.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
+                else
+                    file_fd = open(file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+
+                if (args[args.size() - 2].contains("2"))
                     dup2(file_fd, 2);
                 else
                     dup2(file_fd, 1);
+
                 close(file_fd);
                 args.pop_back();
                 args.pop_back();
-                }
-        }
+            }
 
         if (command == "echo") {
             for (size_t i = 1; i < args.size(); i++) {
