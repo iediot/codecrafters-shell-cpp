@@ -40,6 +40,23 @@ void redraw(const std::string& line) {
     std::cout << std::flush;
 }
 
+std::vector<std::string> split_path_env() {
+    std::vector<std::string> paths;
+    const char* env = std::getenv("PATH");
+    if (!env)
+        return paths;
+
+    std::string path_env(env);
+    std::stringstream ss(path_env);
+    std::string dir;
+
+    while (std::getline(ss, dir, ':'))
+        if (!dir.empty())
+            paths.push_back(dir);
+
+    return paths;
+}
+
 std::vector<std::string> complete_builtins(const std::string& prefix) {
     std::vector<std::string> matches;
     for (const auto& cmd : builtins) {
@@ -61,6 +78,32 @@ std::vector<std::string> complete_files(const std::string& prefix) {
             matches.push_back(name);
     }
     closedir(dir);
+    return matches;
+}
+
+std::vector<std::string> complete_executables(const std::string& prefix) {
+    std::vector<std::string> matches;
+    auto paths = split_path_env();
+
+    for (const auto& dir : paths) {
+        DIR* d = opendir(dir.c_str());
+        if (!d)
+            continue;
+
+        dirent* entry;
+        while ((entry = readdir(d)) != nullptr) {
+            std::string name = entry->d_name;
+
+            if (name.compare(0, prefix.size(), prefix) != 0)
+                continue;
+
+            std::string full_path = dir + "/" + name;
+
+            if (access(full_path.c_str(),X_OK) == 0)
+                matches.push_back(name);
+        }
+        closedir(d);
+    }
     return matches;
 }
 
@@ -99,6 +142,9 @@ std::string read_line() {
 
             if (first_word) {
                 matches = complete_builtins(current);
+                auto execs = complete_executables(current);
+
+                matches.insert(matches.end(), execs.begin(), execs.end());
             } else {
                 matches = complete_files(current);
             }
@@ -109,6 +155,7 @@ std::string read_line() {
             else if (matches.size() == 1) {
                 line.erase(pos);
                 line += matches[0];
+                line += " ";
                 redraw(line);
             }
 
