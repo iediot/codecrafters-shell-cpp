@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <termios.h>
+#include <unordered_set>
 
 termios orig_termios;
 
@@ -29,7 +30,7 @@ void disable_raw_mode() {
 }
 
 const std::vector<std::string> builtins = {
-    "echo ", "exit ", "type ", "pwd ", "cd "
+    "echo", "exit", "type", "pwd", "cd"
 };
 
 void redraw(const std::string& line) {
@@ -141,10 +142,17 @@ std::string read_line() {
             std::vector<std::string> matches;
 
             if (first_word) {
-                matches = complete_builtins(current);
+                std::unordered_set<std::string> seen;
+                auto builtins = complete_builtins(current);
+                for (const auto& b : builtins) {
+                    seen.insert(b);
+                    matches.push_back(b);
+                }
                 auto execs = complete_executables(current);
-
-                matches.insert(matches.end(), execs.begin(), execs.end());
+                for (const auto& e : execs) {
+                    if (!seen.count(e))
+                        matches.push_back(e);
+                }
             } else {
                 matches = complete_files(current);
             }
