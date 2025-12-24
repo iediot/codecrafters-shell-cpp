@@ -158,6 +158,11 @@ std::string read_line() {
                         matches.push_back(e);
                 }
             } else {
+                if (current.empty()) {
+                    std::cout << '\x07' << std::flush;
+                    tab_pressed = false;
+                    continue;
+                }
                 matches = complete_files(current);
             }
 
