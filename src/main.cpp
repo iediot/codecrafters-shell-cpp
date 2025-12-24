@@ -203,6 +203,10 @@ std::string read_line() {
             if (lcp.size() > current.size()) {
                 line.erase(pos);
                 line += lcp;
+
+                if (matches.size() == 1)
+                    line += " ";
+
                 redraw(line);
                 tab_pressed = false;
                 continue;
