@@ -111,6 +111,7 @@ std::vector<std::string> complete_executables(const std::string& prefix) {
 std::string read_line() {
     std::string line;
     char c;
+    bool tab_pressed = false;
 
     redraw(line);
 
@@ -118,6 +119,9 @@ std::string read_line() {
         ssize_t n = read(STDIN_FILENO, &c, 1);
         if (n <= 0)
             return "";
+
+        if (c != '\t')
+            tab_pressed = false;
 
         if (c == '\n') {
             std::cout << '\n';
@@ -160,11 +164,22 @@ std::string read_line() {
             if (matches.empty())
                 std::cout << '\x07' << std::flush;
 
-            else if (matches.size() == 1) {
+            if (matches.size() == 1) {
                 line.erase(pos);
                 line += matches[0];
                 line += " ";
                 redraw(line);
+            }
+
+            if (tab_pressed) {
+                std::cout << "\n";
+                for (const auto& m : matches)
+                    std::cout << m << " ";
+                std::cout << "\n";
+                redraw(line);
+                tab_pressed = false;
+            } else {
+                tab_pressed = true;
             }
 
             continue;
