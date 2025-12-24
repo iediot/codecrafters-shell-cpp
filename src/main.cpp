@@ -109,6 +109,22 @@ std::vector<std::string> complete_executables(const std::string& prefix) {
     return matches;
 }
 
+std::string longest_common_prefix(const std::vector<std::string>& matches) {
+    if (matches.empty())
+        return "";
+
+    std::string prefix = matches[0];
+    for (size_t i = 0; i < matches.size(); ++i) {
+        size_t j = 0;
+        while (j < prefix.size() && j < matches[i].size() && prefix[j] == matches[i][j])
+            ++j;
+        prefix = prefix.substr(0, j);
+        if (prefix.empty())
+            break;
+    }
+    return prefix;
+}
+
 std::string read_line() {
     std::string line;
     char c;
@@ -180,6 +196,16 @@ std::string read_line() {
                 line += matches[0];
                 line += " ";
                 redraw(line);
+            }
+
+            std::string lcp = longest_common_prefix(matches);
+
+            if (lcp.size() > current.size()) {
+                line.erase(pos);
+                line += lcp;
+                redraw(line);
+                tab_pressed = false;
+                continue;
             }
 
             if (!tab_pressed) {
