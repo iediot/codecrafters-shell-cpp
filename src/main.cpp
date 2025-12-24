@@ -179,16 +179,19 @@ std::string read_line() {
                 redraw(line);
             }
 
-            if (tab_pressed) {
-                std::cout << "\n";
-                for (const auto& m : matches)
-                    std::cout << m << " ";
-                std::cout << "\n";
-                redraw(line);
-                tab_pressed = false;
-            } else {
+            if (!tab_pressed) {
+                std::cout << '\x07' << std::flush;
                 tab_pressed = true;
+                continue;
             }
+
+            std::cout << "\n";
+            for (const auto& m : matches)
+                std::cout << m << " ";
+            std::cout << "\n";
+            redraw(line);
+            tab_pressed = false;
+
 
             continue;
         }
