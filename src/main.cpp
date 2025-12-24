@@ -10,6 +10,113 @@
 #include <filesystem>
 #include <cstdlib>
 #include <fcntl.h>
+#include <dirent.h>
+#include <termios.h>
+
+termios orig_termios;
+
+void enable_raw_mode() {
+    tcgetattr(STDIN_FILENO, &orig_termios);
+    termios raw = orig_termios;
+    raw.c_lflag &= ~(ICANON | ECHO);
+    raw.c_cc[VMIN] = 1;
+    raw.c_cc[VTIME] = 0;
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+}
+
+void disable_raw_mode() {
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+}
+
+const std::vector<std::string> builtins = {
+    "echo", "exit", "type", "pwd", "cd"
+};
+
+void redraw(const std::string& line) {
+    std::cout << "\r\033[K$ " << line;
+
+    std::cout << "\033[" << (line.size() + 3) << "G";
+
+    std::cout << std::flush;
+}
+
+std::vector<std::string> complete_builtins(const std::string& prefix) {
+    std::vector<std::string> matches;
+    for (const auto& cmd : builtins) {
+        if (cmd.compare(0, prefix.size(), prefix) == 0) {
+            matches.push_back(cmd);
+        }
+    }
+    return matches;
+}
+
+std::vector<std::string> complete_files(const std::string& prefix) {
+    std::vector<std::string> matches;
+    DIR* dir = opendir(".");
+    if (!dir) return matches;
+    dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        std::string name = entry->d_name;
+        if (name.starts_with(prefix))
+            matches.push_back(name);
+    }
+    closedir(dir);
+    return matches;
+}
+
+std::string read_line() {
+    std::string line;
+    char c;
+
+    redraw(line);
+
+    while (true) {
+        ssize_t n = read(STDIN_FILENO, &c, 1);
+        if (n <= 0)
+            return "";
+
+        if (c == '\n') {
+            std::cout << '\n';
+            break;
+        }
+
+        if (c == 127 || c == '\b') {
+            if (!line.empty()) {
+                line.pop_back();
+                redraw(line);
+            }
+            continue;
+        }
+
+        if (c == '\t') {
+            size_t pos = line.size();
+            while (pos > 0 && line[pos - 1] != ' ')
+                pos--;
+            bool first_word = (pos == 0);
+
+            std::string current = line.substr(pos);
+            std::vector<std::string> matches;
+
+            if (first_word) {
+                matches = complete_builtins(current);
+            } else {
+                matches = complete_files(current);
+            }
+
+            if (matches.size() == 1) {
+                line.erase(pos);
+                line += matches[0];
+                redraw(line);
+            }
+            continue;
+        }
+
+        line.push_back(c);
+        redraw(line);
+    }
+
+    return line;
+}
 
 std::vector<std::string> parse_input(std::string line) {
     std::vector<std::string> tokens;
@@ -84,12 +191,10 @@ int main() {
     std::cerr << std::unitbuf;
     std::string line;
     std::string command;
+    enable_raw_mode();
 
     while (true) {
-        std::cout << "$ " << std::flush;
-
-        if (!std::getline(std::cin, line))
-            break;
+        line = read_line();
         if (line.empty())
             continue;
 
@@ -137,6 +242,7 @@ int main() {
         }
 
         else if (command == "exit") {
+            disable_raw_mode();
             return 0;
         }
 
