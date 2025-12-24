@@ -13,6 +13,7 @@
 #include <dirent.h>
 #include <termios.h>
 #include <unordered_set>
+#include <algorithm>
 
 termios orig_termios;
 
@@ -165,6 +166,8 @@ std::string read_line() {
                 }
                 matches = complete_files(current);
             }
+
+            std::sort(matches.begin(), matches.end());
 
             if (matches.empty()) {
                 std::cout << '\x07' << std::flush;
