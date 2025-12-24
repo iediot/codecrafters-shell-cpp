@@ -92,8 +92,8 @@ std::string read_line() {
             size_t pos = line.size();
             while (pos > 0 && line[pos - 1] != ' ')
                 pos--;
-            bool first_word = (pos == 0);
 
+            bool first_word = (pos == 0);
             std::string current = line.substr(pos);
             std::vector<std::string> matches;
 
@@ -103,11 +103,15 @@ std::string read_line() {
                 matches = complete_files(current);
             }
 
-            if (matches.size() == 1) {
+            if (matches.empty())
+                std::cout << '\x07' << std::flush;
+
+            else if (matches.size() == 1) {
                 line.erase(pos);
                 line += matches[0];
                 redraw(line);
             }
+
             continue;
         }
 
