@@ -29,7 +29,7 @@ void disable_raw_mode() {
 }
 
 const std::vector<std::string> builtins = {
-    "echo", "exit", "type", "pwd", "cd"
+    "echo ", "exit ", "type ", "pwd ", "cd "
 };
 
 void redraw(const std::string& line) {
