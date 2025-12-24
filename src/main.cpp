@@ -187,11 +187,10 @@ std::string read_line() {
 
             std::cout << "\n";
             for (const auto& m : matches)
-                std::cout << m << " ";
+                std::cout << m << "  ";
             std::cout << "\n";
             redraw(line);
             tab_pressed = false;
-
 
             continue;
         }
