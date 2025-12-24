@@ -161,8 +161,11 @@ std::string read_line() {
                 matches = complete_files(current);
             }
 
-            if (matches.empty())
+            if (matches.empty()) {
                 std::cout << '\x07' << std::flush;
+                tab_pressed = false;
+                continue;
+            }
 
             if (matches.size() == 1) {
                 line.erase(pos);
