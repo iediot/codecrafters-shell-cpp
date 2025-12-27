@@ -318,118 +318,176 @@ int main() {
         std::vector<std::string> args = parse_input(line);
         if (args.empty()) continue;
 
-        std::string command = args[0];
-
-        bool write_into_file = false;
-        std::string file;
-        int saved = dup(1);
-        if (args.size() > 2)
-            if (args[args.size() - 2]  == ">" ||
-                args[args.size() - 2]  == "1>" ||
-                args[args.size() - 2]  == "2>" ||
-                args[args.size() - 2]  == ">>" ||
-                args[args.size() - 2]  == "1>>" ||
-                args[args.size() - 2]  == "2>>") {
-                write_into_file = true;
-                file = args[args.size() - 1];
-                int file_fd;
-
-                if (args[args.size() - 2].contains(">>"))
-                    file_fd = open(file.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
-                else
-                    file_fd = open(file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-
-                if (args[args.size() - 2].contains("2"))
-                    dup2(file_fd, 2);
-                else
-                    dup2(file_fd, 1);
-
-                close(file_fd);
-                args.pop_back();
-                args.pop_back();
+        int pipe_index = -1;
+        for (size_t i =0; i < args.size(); ++i) {
+            if (args[i] == "|") {
+                pipe_index = i;
+                break;
             }
-
-        if (command == "echo") {
-            for (size_t i = 1; i < args.size(); i++) {
-                if (i > 1)
-                    std::cout << " ";
-                std::cout << args[i];
-            }
-            std::cout << "\n";
         }
 
-        else if (command == "exit") {
-            disable_raw_mode();
-            return 0;
-        }
+        if (pipe_index == -1) {
+            std::string command = args[0];
 
-        else if (command == "type") {
-            if (args.size() < 2)
-                continue;
-            const std::string& command_to_know = args[1];
-            bool found = false;
-            std::vector<std::string> builtins = {"echo", "exit", "type", "pwd", "cd"};
+            bool write_into_file = false;
+            std::string file;
+            int saved = dup(1);
+            if (args.size() > 2)
+                if (args[args.size() - 2]  == ">" ||
+                    args[args.size() - 2]  == "1>" ||
+                    args[args.size() - 2]  == "2>" ||
+                    args[args.size() - 2]  == ">>" ||
+                    args[args.size() - 2]  == "1>>" ||
+                    args[args.size() - 2]  == "2>>") {
+                    write_into_file = true;
+                    file = args[args.size() - 1];
+                    int file_fd;
 
-            for (const auto& b : builtins)
-                if (b == command_to_know) {
-                    std::cout << command_to_know << " is a shell builtin\n";
-                    found = true;
+                    if (args[args.size() - 2].contains(">>"))
+                        file_fd = open(file.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
+                    else
+                        file_fd = open(file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+
+                    if (args[args.size() - 2].contains("2"))
+                        dup2(file_fd, 2);
+                    else
+                        dup2(file_fd, 1);
+
+                    close(file_fd);
+                    args.pop_back();
+                    args.pop_back();
+                    }
+
+            if (command == "echo") {
+                for (size_t i = 1; i < args.size(); i++) {
+                    if (i > 1)
+                        std::cout << " ";
+                    std::cout << args[i];
                 }
+                std::cout << "\n";
+            }
 
-            if (!found) {
-                std::string path_env = std::getenv("PATH");
-                std::stringstream ss_path(path_env);
-                std::string path;
-                while (std::getline(ss_path, path, ':')) {
-                    std::string full_path = path + '/' + command_to_know;
-                    if (access(full_path.c_str(), X_OK) == 0) {
-                        std::cout << command_to_know << " is " << full_path << "\n";
+            else if (command == "exit") {
+                disable_raw_mode();
+                return 0;
+            }
+
+            else if (command == "type") {
+                if (args.size() < 2)
+                    continue;
+                const std::string& command_to_know = args[1];
+                bool found = false;
+                std::vector<std::string> builtins = {"echo", "exit", "type", "pwd", "cd"};
+
+                for (const auto& b : builtins)
+                    if (b == command_to_know) {
+                        std::cout << command_to_know << " is a shell builtin\n";
                         found = true;
-                        break;
+                    }
+
+                if (!found) {
+                    std::string path_env = std::getenv("PATH");
+                    std::stringstream ss_path(path_env);
+                    std::string path;
+                    while (std::getline(ss_path, path, ':')) {
+                        std::string full_path = path + '/' + command_to_know;
+                        if (access(full_path.c_str(), X_OK) == 0) {
+                            std::cout << command_to_know << " is " << full_path << "\n";
+                            found = true;
+                            break;
+                        }
                     }
                 }
+                if (!found)
+                    std::cout << command_to_know << ": not found\n";
             }
-            if (!found)
-                std::cout << command_to_know << ": not found\n";
-        }
 
-        else if (command == "pwd") {
-            std::cout << std::filesystem::current_path().string() << "\n";
-        }
+            else if (command == "pwd") {
+                std::cout << std::filesystem::current_path().string() << "\n";
+            }
 
-        else if (command == "cd") {
-            const char* target = nullptr;
-            const char* home = std::getenv("HOME");
+            else if (command == "cd") {
+                const char* target = nullptr;
+                const char* home = std::getenv("HOME");
 
-            if (args.size() < 2) {
-                target = home;
-                if (!target)
-                    target = "/";
-            } else if (args[1] == "~")
-                target = home;
-            else
-                target = args[1].c_str();
-            if (chdir(target) != 0)
-                std::cout << "cd: " << target << ": No such file or directory\n";
-        } else {
-            std::vector<char*> c_args;
-            for (auto &a : args)
-                c_args.push_back(&a[0]);
-            c_args.push_back(nullptr);
-
-            pid_t pid = fork();
-            if (pid == 0) {
-                execvp(command.c_str(), c_args.data());
-                std::cout << command << ": command not found\n";
-                exit(1);
+                if (args.size() < 2) {
+                    target = home;
+                    if (!target)
+                        target = "/";
+                } else if (args[1] == "~")
+                    target = home;
+                else
+                    target = args[1].c_str();
+                if (chdir(target) != 0)
+                    std::cout << "cd: " << target << ": No such file or directory\n";
             } else {
-                wait(nullptr);
-            }
-        }
+                std::vector<char*> c_args;
+                for (auto &a : args)
+                    c_args.push_back(&a[0]);
+                c_args.push_back(nullptr);
 
-        if (write_into_file) {
-            dup2(saved, 1);
-            close(saved);
+                pid_t pid = fork();
+                if (pid == 0) {
+                    execvp(command.c_str(), c_args.data());
+                    std::cout << command << ": command not found\n";
+                    exit(1);
+                } else {
+                    wait(nullptr);
+                }
+            }
+
+            if (write_into_file) {
+                dup2(saved, 1);
+                close(saved);
+            }
+        } else {
+            std::vector<std::string> left_args (
+                args.begin(),
+                args.begin() + pipe_index
+            );
+
+            std::vector<std::string> right_args (
+                args.begin() + pipe_index + 1,
+                args.end()
+            );
+
+            auto to_argv = [](const std::vector<std::string>& v) {
+                std::vector<char*> res;
+                for (const auto& s : v)
+                    res.push_back(const_cast<char*>(s.c_str()));
+                res.push_back(nullptr);
+                return res;
+            };
+
+            auto left_argv = to_argv(left_args);
+            auto right_argv = to_argv(right_args);
+
+            int pipefd[2];
+            pipe(pipefd);
+
+            pid_t left_pid = fork();
+            if (left_pid == 0) {
+                dup2(pipefd[1], STDOUT_FILENO);
+                close(pipefd[0]);
+                close(pipefd[1]);
+                execvp(left_argv[0], left_argv.data());
+                exit(1);
+            }
+
+            pid_t right_pid = fork();
+            if (right_pid == 0) {
+                dup2(pipefd[0], STDOUT_FILENO);
+                close(pipefd[1]);
+                close(pipefd[0]);
+                execvp(right_argv[0], right_argv.data());
+                exit(1);
+            }
+
+            close(pipefd[0]);
+            close(pipefd[1]);
+
+            waitpid(left_pid, nullptr, 0);
+            waitpid(right_pid, nullptr, 0);
         }
     }
 }
