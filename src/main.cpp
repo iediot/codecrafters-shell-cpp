@@ -35,11 +35,7 @@ const std::vector<std::string> builtins = {
 };
 
 void redraw(const std::string& line) {
-    std::cout << "\r\033[K$ " << line;
-
-    std::cout << "\033[" << (line.size() + 3) << "G";
-
-    std::cout << std::flush;
+    std::cout << "\r\033[K$ " << line << std::flush;
 }
 
 std::vector<std::string> split_path_env() {
@@ -476,7 +472,7 @@ int main() {
 
             pid_t right_pid = fork();
             if (right_pid == 0) {
-                dup2(pipefd[0], STDOUT_FILENO);
+                dup2(pipefd[0], STDIN_FILENO);
                 close(pipefd[1]);
                 close(pipefd[0]);
                 execvp(right_argv[0], right_argv.data());
