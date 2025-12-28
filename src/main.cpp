@@ -299,6 +299,48 @@ std::vector<std::string> parse_input(std::string line) {
     return tokens;
 }
 
+bool is_builtin(const std::string& command) {
+    return command == "echo" || command == "exit" || command == "type"
+        || command == "pwd" || command == "cd";
+}
+
+void run_builtin(const std::vector<std::string>& args)
+{
+    const std::string& command = args[0];
+
+    if (command == "echo") {
+        for (size_t i = 1; i < args.size(); i++) {
+            if (i > 1)
+                std::cout << " ";
+            std::cout << args[i];
+        }
+    }
+    else if (command == "pwd") {
+        std::cout << std::filesystem::current_path().string() << "\n";
+    }
+    else if (command == "type") {
+        if (args.size() < 2)
+            return;
+        const std::string& target = args[1];
+        if (is_builtin(target))
+        {
+            std::cout << target << " is a shell builtin\n";
+        } else {
+            std::string path_env = std::getenv("PATH");
+            std::stringstream ss(path_env);
+            std::string path;
+            while (std::getline(ss, path, ':')) {
+                std::string full = path + "/" + target;
+                if (access(full.c_str(), X_OK) == 0) {
+                    std::cout << target << " is " << full << "\n";
+                    return;
+                }
+            }
+            std::cout << target << ": not found\n";
+        }
+    }
+}
+
 int main() {
     std::cout << std::unitbuf;
     std::cerr << std::unitbuf;
@@ -466,7 +508,13 @@ int main() {
                 dup2(pipefd[1], STDOUT_FILENO);
                 close(pipefd[0]);
                 close(pipefd[1]);
-                execvp(left_argv[0], left_argv.data());
+                if (is_builtin(left_args[0])) {
+                    run_builtin(left_args);
+                    exit(0);
+                } else {
+                    execvp(left_argv[0], left_argv.data());
+                    exit(1);
+                }
                 exit(1);
             }
 
@@ -475,7 +523,13 @@ int main() {
                 dup2(pipefd[0], STDIN_FILENO);
                 close(pipefd[1]);
                 close(pipefd[0]);
-                execvp(right_argv[0], right_argv.data());
+                if (is_builtin(right_args[0])) {
+                    run_builtin(right_args);
+                    exit(0);
+                } else {
+                    execvp(right_argv[0], right_argv.data());
+                    exit(1);
+                }
                 exit(1);
             }
 
