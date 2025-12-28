@@ -339,6 +339,8 @@ void run_builtin(const std::vector<std::string>& args)
             std::cout << target << ": not found\n";
         }
     }
+    std::cout.flush();
+    std::cerr.flush();
 }
 
 int main() {
