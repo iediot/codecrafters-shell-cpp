@@ -306,17 +306,19 @@ bool is_builtin(const std::string& command) {
 
 void run_builtin(const std::vector<std::string>& args)
 {
+    std::string out;
     const std::string& command = args[0];
 
     if (command == "echo") {
         for (size_t i = 1; i < args.size(); i++) {
             if (i > 1)
                 std::cout << " ";
-            std::cout << args[i];
+            out += args[i];
         }
+        out += "\n";
     }
     else if (command == "pwd") {
-        std::cout << std::filesystem::current_path().string() << "\n";
+        out = std::filesystem::current_path().string() + "\n";
     }
     else if (command == "type") {
         if (args.size() < 2)
@@ -324,23 +326,12 @@ void run_builtin(const std::vector<std::string>& args)
         const std::string& target = args[1];
         if (is_builtin(target))
         {
-            std::cout << target << " is a shell builtin\n";
+            out = target + " is a shell builtin\n";
         } else {
-            std::string path_env = std::getenv("PATH");
-            std::stringstream ss(path_env);
-            std::string path;
-            while (std::getline(ss, path, ':')) {
-                std::string full = path + "/" + target;
-                if (access(full.c_str(), X_OK) == 0) {
-                    std::cout << target << " is " << full << "\n";
-                    return;
-                }
-            }
-            std::cout << target << ": not found\n";
+            out = target + ": not found\n";
         }
     }
-    std::cout.flush();
-    std::cerr.flush();
+    write(STDOUT_FILENO, out.c_str(), out.size());
 }
 
 int main() {
