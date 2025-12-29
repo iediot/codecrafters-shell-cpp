@@ -160,14 +160,14 @@ std::string read_line() {
 
             if (first_word) {
                 std::unordered_set<std::string> seen;
-                auto builtins = complete_builtins(current);
-                for (const auto& b : builtins) {
+                auto built_ins = complete_builtins(current);
+                for (const auto& b : built_ins) {
                     seen.insert(b);
                     matches.push_back(b);
                 }
                 auto execs = complete_executables(current);
                 for (const auto& e : execs) {
-                    if (!seen.count(e))
+                    if (!seen.contains(e))
                         matches.push_back(e);
                 }
             } else {
@@ -179,7 +179,7 @@ std::string read_line() {
                 matches = complete_files(current);
             }
 
-            std::sort(matches.begin(), matches.end());
+            std::ranges::sort(matches.begin(), matches.end());
 
             if (matches.empty()) {
                 std::cout << '\x07' << std::flush;
@@ -231,7 +231,7 @@ std::string read_line() {
     return line;
 }
 
-std::vector<std::string> parse_input(std::string line) {
+std::vector<std::string> parse_input(const std::string& line) {
     std::vector<std::string> tokens;
     std::string current_token;
     char quote_char = 0;
@@ -271,7 +271,7 @@ std::vector<std::string> parse_input(std::string line) {
                 current_token += c;
             }
         }
-        else if (quote_char == '"') {
+        else {
             if (c == '"') {
                 quote_char = 0;
             }
@@ -334,6 +334,14 @@ void run_builtin(const std::vector<std::string>& args)
     write(STDOUT_FILENO, out.c_str(), out.size());
 }
 
+std::vector<char*> to_argv(const std::vector<std::string>& v) {
+    std::vector<char*> res;
+    for (const auto& s : v)
+        res.push_back(const_cast<char*>(s.c_str()));
+    res.push_back(nullptr);
+    return res;
+}
+
 int main() {
     std::cout << std::unitbuf;
     std::cerr << std::unitbuf;
@@ -349,16 +357,21 @@ int main() {
         std::vector<std::string> args = parse_input(line);
         if (args.empty()) continue;
 
-        int pipe_index = -1;
-        for (size_t i =0; i < args.size(); ++i) {
-            if (args[i] == "|") {
-                pipe_index = i;
-                break;
-            }
-        }
+        std::vector<std::vector<std::string>> commands;
+        std::vector<std::string> current;
 
-        if (pipe_index == -1) {
-            std::string command = args[0];
+        for (const auto& arg : args) {
+            if (arg == "|") {
+                commands.push_back(current);
+                current.clear();
+            }
+            else
+                current.push_back(arg);
+        }
+        commands.push_back(current);
+
+        if (commands.size() == 1) {
+            std::string cmd = args[0];
 
             bool write_into_file = false;
             std::string file;
@@ -389,7 +402,7 @@ int main() {
                     args.pop_back();
                     }
 
-            if (command == "echo") {
+            if (cmd == "echo") {
                 for (size_t i = 1; i < args.size(); i++) {
                     if (i > 1)
                         std::cout << " ";
@@ -398,17 +411,16 @@ int main() {
                 std::cout << "\n";
             }
 
-            else if (command == "exit") {
+            else if (cmd == "exit") {
                 disable_raw_mode();
                 return 0;
             }
 
-            else if (command == "type") {
+            else if (cmd == "type") {
                 if (args.size() < 2)
                     continue;
                 const std::string& command_to_know = args[1];
                 bool found = false;
-                std::vector<std::string> builtins = {"echo", "exit", "type", "pwd", "cd"};
 
                 for (const auto& b : builtins)
                     if (b == command_to_know) {
@@ -433,11 +445,11 @@ int main() {
                     std::cout << command_to_know << ": not found\n";
             }
 
-            else if (command == "pwd") {
+            else if (cmd == "pwd") {
                 std::cout << std::filesystem::current_path().string() << "\n";
             }
 
-            else if (command == "cd") {
+            else if (cmd == "cd") {
                 const char* target = nullptr;
                 const char* home = std::getenv("HOME");
 
@@ -459,8 +471,8 @@ int main() {
 
                 pid_t pid = fork();
                 if (pid == 0) {
-                    execvp(command.c_str(), c_args.data());
-                    std::cout << command << ": command not found\n";
+                    execvp(cmd.c_str(), c_args.data());
+                    std::cout << cmd << ": command not found\n";
                     exit(1);
                 } else {
                     wait(nullptr);
@@ -472,65 +484,40 @@ int main() {
                 close(saved);
             }
         } else {
-            std::vector<std::string> left_args (
-                args.begin(),
-                args.begin() + pipe_index
-            );
+            int n = commands.size();
+            std::vector<int> pipes(2 *(n - 1));
 
-            std::vector<std::string> right_args (
-                args.begin() + pipe_index + 1,
-                args.end()
-            );
-
-            auto to_argv = [](const std::vector<std::string>& v) {
-                std::vector<char*> res;
-                for (const auto& s : v)
-                    res.push_back(const_cast<char*>(s.c_str()));
-                res.push_back(nullptr);
-                return res;
-            };
-
-            auto left_argv = to_argv(left_args);
-            auto right_argv = to_argv(right_args);
-
-            int pipefd[2];
-            pipe(pipefd);
-
-            pid_t left_pid = fork();
-            if (left_pid == 0) {
-                dup2(pipefd[1], STDOUT_FILENO);
-                close(pipefd[0]);
-                close(pipefd[1]);
-                if (is_builtin(left_args[0])) {
-                    run_builtin(left_args);
-                    exit(0);
-                } else {
-                    execvp(left_argv[0], left_argv.data());
-                    exit(1);
-                }
-                exit(1);
+            for (int i = 0; i < n - 1; i++) {
+                pipe(&pipes[2 * i]);
             }
 
-            pid_t right_pid = fork();
-            if (right_pid == 0) {
-                dup2(pipefd[0], STDIN_FILENO);
-                close(pipefd[1]);
-                close(pipefd[0]);
-                if (is_builtin(right_args[0])) {
-                    run_builtin(right_args);
-                    exit(0);
-                } else {
-                    execvp(right_argv[0], right_argv.data());
-                    exit(1);
+            for (int i = 0; i < n; i++) {
+                pid_t pid = fork();
+
+                if (pid == 0) {
+                    if (i > 0)
+                        dup2(pipes[(i - 1) * 2], STDIN_FILENO);
+
+                    if (i < n - 1)
+                        dup2(pipes[i * 2 + 1],STDOUT_FILENO);
+
+                    for (int fd : pipes)
+                        close(fd);
+
+                    if (is_builtin(commands[i][0])) {
+                        run_builtin(commands[i]);
+                        _exit(0);
+                    } else {
+                        auto argv = to_argv(commands[i]);
+                        execvp(argv[0], argv.data());
+                        _exit(1);
+                    }
                 }
-                exit(1);
             }
-
-            close(pipefd[0]);
-            close(pipefd[1]);
-
-            waitpid(left_pid, nullptr, 0);
-            waitpid(right_pid, nullptr, 0);
+            for (int fd : pipes)
+                close(fd);
+            for (int i = 0; i < n; i++)
+                wait(nullptr);
         }
     }
 }
