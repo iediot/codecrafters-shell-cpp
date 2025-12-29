@@ -31,7 +31,7 @@ void disable_raw_mode() {
 }
 
 const std::vector<std::string> builtins = {
-    "echo", "exit", "type", "pwd", "cd"
+    "echo", "exit", "type", "pwd", "cd", "history"
 };
 
 void redraw(const std::string& line) {
@@ -301,7 +301,7 @@ std::vector<std::string> parse_input(const std::string& line) {
 
 bool is_builtin(const std::string& command) {
     return command == "echo" || command == "exit" || command == "type"
-        || command == "pwd" || command == "cd";
+        || command == "pwd" || command == "cd" || command == "history";
 }
 
 void run_builtin(const std::vector<std::string>& args)
@@ -348,11 +348,16 @@ int main() {
     std::string line;
     std::string command;
     enable_raw_mode();
+    std::vector<std::string> history;
+    int history_index;
 
     while (true) {
         line = read_line();
         if (line.empty())
             continue;
+
+        history.push_back(line);
+        history_index = history.size();
 
         std::vector<std::string> args = parse_input(line);
         if (args.empty()) continue;
@@ -463,6 +468,12 @@ int main() {
                     target = args[1].c_str();
                 if (chdir(target) != 0)
                     std::cout << "cd: " << target << ": No such file or directory\n";
+            }
+
+            else if (cmd == "history") {
+                for (int i = 1; i <= history_index; i++) {
+                    std::cout << i << "  " << history[i] << "\n";
+                }
             } else {
                 std::vector<char*> c_args;
                 for (auto &a : args)
