@@ -471,15 +471,21 @@ int main() {
             }
 
             else if (cmd == "history") {
+                int n = history.size();
 
-                if (args.size() < 2)
-                    for (int i = 0; i < history_index; i++) {
-                        std::cout << i + 1 << "  " << history[i] << "\n";
+                if (args.size() > 1) {
+                    try {
+                        n = std::stoi(args[1]);
+                    } catch (...) {
+                        std::cerr << "history: numeric argument required\n";
                     }
-                else
-                    for (int i = std::stoi(args[1]); i < history_index - std::stoi(args[1]); i++) {
-                        std::cout << i + 1 << "  " << history[i] << "\n";
-                    }
+                }
+
+                int start = std::max(0, (int)history.size() - n);
+
+                for (int i = start; i < history.size(); ++i) {
+                    std::cout << "    " << (i + 1) << "  " << history[i] << "\n";
+                }
 
             } else {
                 std::vector<char*> c_args;
