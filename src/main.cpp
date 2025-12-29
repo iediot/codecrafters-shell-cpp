@@ -471,9 +471,16 @@ int main() {
             }
 
             else if (cmd == "history") {
-                for (int i = 0; i < history_index; i++) {
-                    std::cout << i + 1 << "  " << history[i] << "\n";
-                }
+
+                if (args.size() < 2)
+                    for (int i = 0; i < history_index; i++) {
+                        std::cout << i + 1 << "  " << history[i] << "\n";
+                    }
+                else
+                    for (int i = std::stoi(args[1]); i < history_index - std::stoi(args[1]); i++) {
+                        std::cout << i + 1 << "  " << history[i] << "\n";
+                    }
+
             } else {
                 std::vector<char*> c_args;
                 for (auto &a : args)
