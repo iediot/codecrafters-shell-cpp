@@ -16,6 +16,7 @@
 #include <algorithm>
 
 termios orig_termios;
+std::vector<std::string> history;
 
 void enable_raw_mode() {
     tcgetattr(STDIN_FILENO, &orig_termios);
@@ -125,6 +126,9 @@ std::string read_line() {
     std::string line;
     char c;
     bool tab_pressed = false;
+    extern std::vector<std::string> history;
+    int history_pos = history.size();
+    std::string saved_line;
 
     redraw(line);
 
@@ -145,6 +149,49 @@ std::string read_line() {
             if (!line.empty()) {
                 line.pop_back();
                 redraw(line);
+            }
+            continue;
+        }
+
+        if (c == '\x1b') {
+            char seq[2];
+            if (read(STDIN_FILENO, &seq[0], 1) == 0)
+                continue;
+            if (read(STDIN_FILENO, &seq[1], 1) == 0)
+                continue;
+
+            if (seq[0] == '[') {
+                if (seq[1] == 'A') {
+                    if (history.empty())
+                        continue;
+
+                    if (history_pos == history.size()) {
+                        saved_line = line;
+                    }
+
+                    if (history_pos > 0) {
+                        history_pos--;
+                        line = history[history_pos];
+                        redraw(line);
+                    }
+                    continue;
+                }
+                if (seq[1] == 'B') {
+                    if (history_pos < history.size() - 1) {
+                        history_pos++;
+                        line = history[history_pos];
+                        redraw(line);
+                    }
+
+                    if (history_pos == history.size() - 1) {
+                        history_pos++;
+                        line = saved_line;
+                        redraw(line);
+                    }
+                    continue;
+                }
+                if (seq[1] == 'C') {}
+                if (seq[1] == 'D') {}
             }
             continue;
         }
@@ -225,6 +272,7 @@ std::string read_line() {
         }
 
         line.push_back(c);
+        history_pos = history.size();
         redraw(line);
     }
 
@@ -348,7 +396,6 @@ int main() {
     std::string line;
     std::string command;
     enable_raw_mode();
-    std::vector<std::string> history;
     int history_index;
 
     while (true) {
