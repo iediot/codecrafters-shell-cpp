@@ -183,11 +183,11 @@ std::string read_line() {
                         redraw(line);
                     }
 
-                    if (history_pos == history.size() - 1) {
+                    else if (history_pos == history.size() - 1) {
                         history_pos++;
                         line = saved_line;
-                        redraw(line);
                     }
+                    redraw(line);
                     continue;
                 }
                 if (seq[1] == 'C') {}
