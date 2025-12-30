@@ -114,9 +114,9 @@ std::string longest_common_prefix(const std::vector<std::string>& matches) {
         return "";
 
     std::string prefix = matches[0];
-    for (size_t i = 0; i < matches.size(); ++i) {
+    for (const auto & match : matches) {
         size_t j = 0;
-        while (j < prefix.size() && j < matches[i].size() && prefix[j] == matches[i][j])
+        while (j < prefix.size() && j < match.size() && prefix[j] == match[j])
             ++j;
         prefix = prefix.substr(0, j);
         if (prefix.empty())
@@ -129,7 +129,7 @@ std::string read_line() {
     std::string line;
     char c;
     bool tab_pressed = false;
-    extern std::vector<std::string> history;
+
     int history_pos = history.size();
     std::string saved_line;
 
