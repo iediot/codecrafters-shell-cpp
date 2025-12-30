@@ -18,6 +18,7 @@
 
 termios orig_termios;
 std::vector<std::string> history;
+size_t history_written = 0;
 
 void enable_raw_mode() {
     tcgetattr(STDIN_FILENO, &orig_termios);
@@ -544,6 +545,19 @@ int main() {
                         for (const auto& entry : history) {
                             file << entry << "\n";
                         }
+                        file.close();
+                        continue;
+                    }
+                    else if (args[1] == "-a") {
+                        std::ofstream file(args[2], std::ios::app);
+                        if (!file.is_open()) {
+                            std::cerr << "history: cannot open " << args[2] << "\n";
+                            continue;
+                        }
+                        for (size_t i = history_written; i < history.size(); ++i) {
+                            file << history[i] << "\n";
+                        }
+                        history_written = history.size();
                         file.close();
                         continue;
                     }
