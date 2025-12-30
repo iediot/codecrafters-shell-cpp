@@ -14,6 +14,7 @@
 #include <termios.h>
 #include <unordered_set>
 #include <algorithm>
+#include <chrono>
 #include <fstream>
 
 termios orig_termios;
@@ -398,6 +399,22 @@ int main() {
     std::string line;
     std::string command;
     enable_raw_mode();
+    const char* histfile = std::getenv("HISTFILE");
+
+    if (histfile) {
+        std::ifstream file(histfile);
+        std::string line;
+
+        if (file.is_open()) {
+            while (std::getline(file, line)) {
+                if (!line.empty())
+                    history.push_back(line);
+            }
+            file.close();
+        }
+    }
+
+    history_written = history.size();
 
     while (true) {
         line = read_line();
