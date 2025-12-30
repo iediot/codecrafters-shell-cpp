@@ -519,19 +519,34 @@ int main() {
             else if (cmd == "history") {
                 int n = history.size();
 
-                if (args.size() == 3 && args[1] == "-r") {
-                    std::ifstream file(args[2]);
-                    if (!file.is_open()) {
-                        std::cerr << "history: cannot open " << args[2] << "\n";
+                if (args.size() == 3)
+                {
+                    if (args[1] == "-r") {
+                        std::ifstream file(args[2]);
+                        if (!file.is_open()) {
+                            std::cerr << "history: cannot open " << args[2] << "\n";
+                            continue;
+                        }
+                        std::string file_line;
+                        while (std::getline(file, file_line)) {
+                            if (file_line.empty())
+                                continue;
+                            history.push_back(file_line);
+                        }
                         continue;
                     }
-                    std::string file_line;
-                    while (std::getline(file, file_line)) {
-                        if (file_line.empty())
+                    else if (args[1] == "-w") {
+                        std::ofstream file(args[2]);
+                        if (!file.is_open()) {
+                            std::cerr << "history: cannot open " << args[2] << "\n";
                             continue;
-                        history.push_back(file_line);
+                        }
+                        for (const auto& entry : history) {
+                            file << entry << "\n";
+                        }
+                        file.close();
+                        continue;
                     }
-                    continue;
                 }
                 if (args.size() > 1) {
                     try {
