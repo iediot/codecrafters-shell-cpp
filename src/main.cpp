@@ -14,6 +14,7 @@
 #include <termios.h>
 #include <unordered_set>
 #include <algorithm>
+#include <fstream>
 
 termios orig_termios;
 std::vector<std::string> history;
@@ -396,7 +397,6 @@ int main() {
     std::string line;
     std::string command;
     enable_raw_mode();
-    int history_index;
 
     while (true) {
         line = read_line();
@@ -404,7 +404,6 @@ int main() {
             continue;
 
         history.push_back(line);
-        history_index = history.size();
 
         std::vector<std::string> args = parse_input(line);
         if (args.empty()) continue;
@@ -520,6 +519,20 @@ int main() {
             else if (cmd == "history") {
                 int n = history.size();
 
+                if (args.size() == 3 && args[1] == "-r") {
+                    std::ifstream file(args[2]);
+                    if (!file.is_open()) {
+                        std::cerr << "history: cannot open " << args[2] << "\n";
+                        continue;
+                    }
+                    std::string file_line;
+                    while (std::getline(file, file_line)) {
+                        if (file_line.empty())
+                            continue;
+                        history.push_back(file_line);
+                    }
+                    continue;
+                }
                 if (args.size() > 1) {
                     try {
                         n = std::stoi(args[1]);
