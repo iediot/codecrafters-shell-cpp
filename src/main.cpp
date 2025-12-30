@@ -480,12 +480,14 @@ int main() {
 
             else if (cmd == "exit") {
                 const char* histfile = std::getenv("HISTFILE");
+
                 if (histfile) {
                     std::ofstream file(histfile, std::ios::app);
                     if (file.is_open()) {
-                        for (int i = history_written; i < history.size(); ++i) {
+                        for (size_t i = history_written; i < history.size(); ++i) {
                             file << history[i] << "\n";
                         }
+                        history_written = history.size();
                         file.close();
                     }
                 }
