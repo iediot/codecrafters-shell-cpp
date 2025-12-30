@@ -193,8 +193,6 @@ std::string read_line() {
                     redraw(line);
                     continue;
                 }
-                if (seq[1] == 'C') {}
-                if (seq[1] == 'D') {}
             }
             continue;
         }
@@ -481,6 +479,17 @@ int main() {
             }
 
             else if (cmd == "exit") {
+                const char* histfile = std::getenv("HISTFILE");
+                if (histfile) {
+                    std::ofstream file(histfile, std::ios::app);
+                    if (file.is_open()) {
+                        for (int i = history_written; i < history.size(); ++i) {
+                            file << history[i] << "\n";
+                        }
+                        file.close();
+                    }
+                }
+
                 disable_raw_mode();
                 return 0;
             }
