@@ -1,34 +1,199 @@
-[![progress-banner](https://backend.codecrafters.io/progress/shell/bdf14e8a-708e-455d-87f4-93ddacd99e73)](https://app.codecrafters.io/users/iediot?r=2qF)
+Here is the **entire README inside one code block** so you can copy-paste it easily.
 
-This is a starting point for C++ solutions to the
-["Build Your Own Shell" Challenge](https://app.codecrafters.io/courses/shell/overview).
+```html
+<h1 align="center">Shell Implementation</h1>
 
-In this challenge, you'll build your own POSIX compliant shell that's capable of
-interpreting shell commands, running external programs and builtin commands like
-cd, pwd, echo and more. Along the way, you'll learn about shell command parsing,
-REPLs, builtin commands, and more.
+<p align="center">
+A lightweight interactive Unix shell written in C++.
+</p>
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+<p align="center">
+Implements command parsing, pipelines, redirection, history, and tab completion using POSIX system calls.
+</p>
 
-# Passing the first stage
+<p align="center">
+<img src="https://img.shields.io/badge/Linux-grey?logo=linux&logoColor=white">
+<img src="https://img.shields.io/badge/C%2B%2B-blue?logo=c%2B%2B&logoColor=white">
+<img src="https://img.shields.io/badge/POSIX-darkgreen">
+<img src="https://img.shields.io/badge/CMake-orange">
+</p>
 
-The entry point for your `shell` implementation is in `src/main.cpp`. Study and
-uncomment the relevant code, and push your changes to pass the first stage:
+---
 
-```sh
-git commit -am "pass 1st stage" # any msg
-git push origin master
+### Overview
+
+This project implements a small Unix-like shell capable of interpreting user commands and executing them using POSIX process APIs.
+
+The shell runs interactively and supports both builtin commands and external programs available in the system PATH.
+
+---
+
+### Features
+
+| Feature | Description |
+|---|---|
+| Interactive REPL | Continuously reads and executes commands |
+| Command parsing | Supports quoting, escaping and argument splitting |
+| Builtin commands | Implemented directly in the shell |
+| External command execution | Runs programs using fork() and execvp() |
+| Pipelines | Connect commands using `|` |
+| Output redirection | Supports `>`, `>>`, `1>`, `2>` |
+| Command history | Stores previous commands |
+| History navigation | Use arrow keys to browse commands |
+| Tab completion | Autocomplete commands and files |
+| PATH lookup | Searches executables in system PATH |
+
+---
+
+### Builtin Commands
+
+| Command | Description |
+|---|---|
+| `echo` | Prints arguments to standard output |
+| `pwd` | Displays the current working directory |
+| `cd` | Changes the current working directory |
+| `exit` | Terminates the shell session |
+| `type` | Determines whether a command is builtin or an executable |
+| `history` | Displays and manages command history |
+
+---
+
+### Command Examples
+
+echo hello world  
+pwd  
+cd /tmp  
+type ls  
+history  
+
+---
+
+### Pipelines
+
+Commands can be chained together using pipes.
+
+ls | grep cpp  
+cat file.txt | sort | uniq  
+
+The output of one process becomes the input of the next process.
+
+---
+
+### Output Redirection
+
+Redirect command output to files.
+
+echo hello > file.txt  
+echo hello >> file.txt  
+command 2> error.log  
+
+Supported operators:
+
+| Operator | Behavior |
+|---|---|
+| `>` | overwrite file |
+| `>>` | append to file |
+| `1>` | redirect stdout |
+| `2>` | redirect stderr |
+
+---
+
+### Command History
+
+The shell stores previously executed commands and allows navigation using arrow keys.
+
+| Key | Action |
+|---|---|
+| Up arrow | previous command |
+| Down arrow | next command |
+
+History can also be written to or loaded from files using the `history` builtin.
+
+history  
+history 10  
+history -r file  
+history -w file  
+history -a file  
+
+---
+
+### Tab Completion
+
+Press Tab to autocomplete commands or file names.
+
+The shell attempts completion using:
+
+• builtin commands  
+• executables in PATH  
+• files in the current directory  
+
+If multiple matches exist, pressing Tab twice shows the available options.
+
+---
+
+### Implementation Details
+
+Key technologies used:
+
+• POSIX process APIs (fork, execvp, wait)  
+• terminal control using termios  
+• filesystem utilities using std::filesystem  
+• directory scanning using dirent  
+• file descriptor manipulation with dup2  
+• pipes using pipe()  
+
+---
+
+### Example Session
+
+$ pwd  
+/home/user  
+
+$ echo hello  
+hello  
+
+$ ls | grep main  
+main.cpp  
+
+$ history  
+    1  pwd  
+    2  echo hello  
+    3  ls | grep main  
+
+---
+
+### Build
+
+mkdir build  
+cd build  
+cmake ..  
+make  
+
+---
+
+### Run
+
+./your_shell
+
+---
+
+### Project Structure
+
+.
+├── src  
+│   └── main.cpp  
+├── CMakeLists.txt  
+└── README.md  
+
+---
+
+### Concepts Demonstrated
+
+• interactive shell design  
+• command parsing  
+• Unix process creation  
+• pipelines and interprocess communication  
+• file descriptor manipulation  
+• terminal input handling
 ```
-
-Time to move on to the next stage!
-
-# Stage 2 & beyond
-
-Note: This section is for stages 2 and beyond.
-
-1. Ensure you have `cmake` installed locally
-1. Run `./your_program.sh` to run your program, which is implemented in
-   `src/main.cpp`.
-1. Commit your changes and run `git push origin master` to submit your solution
-   to CodeCrafters. Test output will be streamed to your terminal.
+[![progress-banner](https://backend.codecrafters.io/progress/shell/bdf14e8a-708e-455d-87f4-93ddacd99e73)](https://app.codecrafters.io/users/iediot?r=2qF)
