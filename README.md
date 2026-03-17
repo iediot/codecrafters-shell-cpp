@@ -161,16 +161,20 @@ $ history
 
 ### Build
 
-mkdir build  
-cd build  
-cmake ..  
-make  
+git clone https://github.com/<your-username>/<repo>.git
+cd <repo>
+
+mkdir build
+cd build
+
+cmake ..
+make 
 
 ---
 
 ### Run
 
-./your_shell
+./build/shell
 
 ---
 
