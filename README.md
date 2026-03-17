@@ -1,6 +1,4 @@
-Here is the **entire README inside one code block** so you can copy-paste it easily.
-
-```html
+```
 <h1 align="center">Shell Implementation</h1>
 
 <p align="center">
