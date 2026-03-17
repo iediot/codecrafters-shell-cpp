@@ -1,3 +1,5 @@
+[![progress-banner](https://backend.codecrafters.io/progress/shell/bdf14e8a-708e-455d-87f4-93ddacd99e73)](https://app.codecrafters.io/users/iediot?r=2qF)
+
 <h1 align="center">Shell Implementation</h1>
 
 <p align="center">
