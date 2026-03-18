@@ -162,25 +162,21 @@ $ history
 ---
 
 ### Build
-
+```bash
 git clone https://github.com/iediot/codecrafters-shell-cpp.git
-
 cd codecrafters-shell-cpp
-
 mkdir build
-
 cd build
-
 cmake ..
-
-make 
+make
+```
 
 ---
 
 ### Run
-
+```bash
 ./build/shell
-
+```
 ---
 
 ### Project Structure
