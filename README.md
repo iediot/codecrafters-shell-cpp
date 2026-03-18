@@ -145,6 +145,7 @@ Key technologies used:
 
 ### Example Session
 
+```bash
 $ pwd  
 /home/user  
 
@@ -158,10 +159,12 @@ $ history
     1  pwd  
     2  echo hello  
     3  ls | grep main  
+```
 
 ---
 
 ### Build
+
 ```bash
 git clone https://github.com/iediot/codecrafters-shell-cpp.git
 cd codecrafters-shell-cpp
@@ -174,14 +177,15 @@ make
 ---
 
 ### Run
+
 ```bash
 ./build/shell
 ```
+
 ---
 
 ### Project Structure
 
-.
 ├── src  
 │   └── main.cpp  
 ├── CMakeLists.txt  
