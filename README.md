@@ -168,9 +168,11 @@ git clone https://github.com/iediot/codecrafters-shell-cpp.git
 cd codecrafters-shell-cpp
 
 mkdir build
+
 cd build
 
 cmake ..
+
 make 
 
 ---
