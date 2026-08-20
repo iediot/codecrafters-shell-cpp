@@ -12,6 +12,7 @@ Implements command parsing, pipelines, redirection, history, and tab completion 
 
 <p align="center">
 <img src="https://img.shields.io/badge/Linux-grey?logo=linux&logoColor=white">
+<img src="https://img.shields.io/badge/macOS-grey?logo=apple&logoColor=white">
 <img src="https://img.shields.io/badge/C%2B%2B-blue?logo=c%2B%2B&logoColor=white">
 <img src="https://img.shields.io/badge/POSIX-darkgreen">
 <img src="https://img.shields.io/badge/CMake-orange">
@@ -168,11 +169,14 @@ $ history
 ```bash
 git clone https://github.com/iediot/codecrafters-shell-cpp.git
 cd codecrafters-shell-cpp
-mkdir build
-cd build
-cmake ..
-make
+cmake -B build -S .
+cmake --build build
 ```
+
+Builds on Linux and macOS (Apple Silicon or Intel). Requires CMake 3.20+ and a
+C++23 compiler (GCC 13+, Clang 16+, or Apple Clang 15+). `readline` is picked up
+automatically if installed -- `brew install readline` on macOS,
+`apt install libreadline-dev` on Debian/Ubuntu -- and skipped if it isn't.
 
 ---
 
